@@ -1,0 +1,7 @@
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <entry key="counter">
+        {0} Поздравляю! До встречи осталось {1} дня(дней).
+        {2}
+    </entry>
+</properties>
