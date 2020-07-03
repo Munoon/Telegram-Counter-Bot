@@ -1,7 +1,7 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
     <entry key="counter">
-        Поздравляю! До встречи осталось {0} дня(дней).
+        :tada: Поздравляю! До встречи осталось {0} дня(дней).
         {1}
     </entry>
     <entry key="additionalMessage">Сообщение:</entry>

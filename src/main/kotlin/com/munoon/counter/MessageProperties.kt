@@ -1,5 +1,6 @@
 package com.munoon.counter
 
+import com.vdurmont.emoji.EmojiParser
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Component
 import java.text.MessageFormat
@@ -21,7 +22,7 @@ class MessageProperties {
         val message = properties.getProperty(key) ?: return null
         val joiner = StringJoiner("\n")
         message.trim().split("\n").forEach { joiner.add(it.trim()) }
-        return joiner.toString()
+        return EmojiParser.parseToUnicode(joiner.toString())
     }
 
     fun getProperty(key: String, vararg arguments: Any): String? {
