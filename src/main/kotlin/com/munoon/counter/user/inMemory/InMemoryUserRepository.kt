@@ -34,4 +34,6 @@ class InMemoryUserRepository : UserRepository {
         storage.add(newUser)
         return newUser
     }
+
+    override fun findAll(): List<User> = ArrayList(storage)
 }
