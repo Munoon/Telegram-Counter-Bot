@@ -18,10 +18,18 @@ class CounterMessageSender(
         repository.findAll().forEach {
             val message = SendMessage()
             message.chatId = it.telegramSettings.chatId
-            message.text = messageProperties.getProperty(
+
+            var text = messageProperties.getProperty(
                     "counter",
                     dateLoader.getRemainsDays(), dateLoader.getLoadingString()
             )
+
+            val additionalText = dateLoader.getAdditionalMessage()
+            if (additionalText != null) {
+                text += "\n$additionalText"
+            }
+
+            message.text = text
             telegramBot.execute(message)
         }
     }
