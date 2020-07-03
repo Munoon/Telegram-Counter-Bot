@@ -1,4 +1,4 @@
-package com.munoon.counter
+package com.munoon.counter.utils
 
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding
 import org.springframework.core.convert.converter.Converter

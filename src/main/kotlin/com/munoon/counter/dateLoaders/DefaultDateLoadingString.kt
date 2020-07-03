@@ -1,7 +1,7 @@
 package com.munoon.counter.dateLoaders
 
-import com.munoon.counter.DatesSettings
-import com.munoon.counter.MessageProperties
+import com.munoon.counter.configuration.DatesSettings
+import com.munoon.counter.utils.MessageProperties
 import org.springframework.stereotype.Component
 
 @Component

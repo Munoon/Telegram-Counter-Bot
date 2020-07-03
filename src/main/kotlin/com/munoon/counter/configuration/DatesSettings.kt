@@ -1,4 +1,4 @@
-package com.munoon.counter
+package com.munoon.counter.configuration
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration

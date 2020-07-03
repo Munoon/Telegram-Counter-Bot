@@ -1,4 +1,4 @@
-package com.munoon.counter
+package com.munoon.counter.utils
 
 import com.vdurmont.emoji.EmojiParser
 import org.springframework.core.io.ClassPathResource
@@ -33,8 +33,8 @@ class MessageProperties {
     fun createWrapper(prefix: String): MessageProperties = Wrapper(this, prefix)
 
     private class Wrapper(
-                    private val telegramProperties: MessageProperties,
-                    private val prefix: String
+            private val telegramProperties: MessageProperties,
+            private val prefix: String
             ) : MessageProperties() {
 
         override fun getProperty(key: String): String? {

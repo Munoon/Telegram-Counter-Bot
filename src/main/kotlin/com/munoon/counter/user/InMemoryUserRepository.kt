@@ -1,8 +1,6 @@
-package com.munoon.counter.user.inMemory
+package com.munoon.counter.user
 
-import com.munoon.counter.user.TelegramSettings
-import com.munoon.counter.user.User
-import com.munoon.counter.user.UserRepository
+import com.munoon.counter.configuration.InMemoryConfiguration
 import javassist.NotFoundException
 import org.springframework.stereotype.Component
 
@@ -36,4 +34,5 @@ class InMemoryUserRepository : UserRepository {
     }
 
     override fun findAll(): List<User> = ArrayList(storage)
+    override fun count(): Int = storage.size
 }
