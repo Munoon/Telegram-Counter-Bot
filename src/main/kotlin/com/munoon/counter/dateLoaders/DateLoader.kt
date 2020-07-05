@@ -11,17 +11,28 @@ abstract class DateLoader(
         protected val datesSettings: DatesSettings,
         private val messageProperties: MessageProperties
 ) {
-    val additionalMessageText = messageProperties.getProperty("additionalMessage")
+    private val additionalMessageText = messageProperties.getProperty("additionalMessage")
 
-    fun getRemainsDays(): Double = datesSettings.end.compareTo(LocalDate.now()).toDouble()
-
-    fun getAdditionalMessage(): String? {
-        val date = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-        val message = messageProperties.getProperty("counter-message-$date")
-                ?: messageProperties.getProperty("counter-message-${getRemainsDays().toInt()}")
+    fun getAdditionalMessage(date: LocalDate = LocalDate.now()): String? {
+        val strDate = date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+        val message = messageProperties.getProperty("counter-message-$strDate")
+                ?: messageProperties.getProperty("counter-message-${getRemainsDays(date).toInt()}")
                 ?: return null
         return "\n$additionalMessageText\n$message"
     }
 
-    abstract fun getLoadingString(): String
+    fun getLoadingString(date: LocalDate = LocalDate.now()): String {
+        val percent = calculatePercent(date)
+        return getLoadingString(percent)
+    }
+
+    fun calculatePercent(date: LocalDate): Double {
+        val compareToday = getRemainsDays(date)
+        val compareTotal = datesSettings.end.compareTo(datesSettings.start).toDouble()
+        return 100 - ((compareToday / compareTotal) * 100)
+    }
+
+    fun getRemainsDays(fromDate: LocalDate = LocalDate.now()): Double = datesSettings.end.compareTo(fromDate).toDouble()
+
+    abstract fun getLoadingString(percent: Double): String
 }

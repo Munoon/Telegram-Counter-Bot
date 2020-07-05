@@ -9,17 +9,15 @@ class DefaultDateLoadingString(
         datesSettings: DatesSettings,
         messageProperties: MessageProperties
 ) : DateLoader(datesSettings, messageProperties) {
-    override fun getLoadingString(): String {
-        val compareToday = getRemainsDays()
-        val compareTotal = datesSettings.end.compareTo(datesSettings.start).toDouble()
-        val progress = (100 - ((compareToday / compareTotal) * 100)).toInt() / 2
-
-        return "[" + Array(50) {
+    override fun getLoadingString(percent: Double): String {
+        val progress = (percent / 2).toInt()
+        val result = Array(50) {
             when {
                 it < progress -> "="
                 it == progress -> ">"
                 else -> " "
             }
-        }.joinToString("") + "]"
+        }.joinToString("")
+        return "[$result]"
     }
 }
