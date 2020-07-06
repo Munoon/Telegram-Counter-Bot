@@ -27,7 +27,8 @@ class MessageProperties {
 
     fun getProperty(key: String, vararg arguments: Any): String? {
         val message = getProperty(key) ?: return null
-        return MessageFormat.format(message, *arguments)
+        val formattedMessage = MessageFormat.format(message, *arguments)
+        return EmojiParser.parseToUnicode(formattedMessage)
     }
 
     fun createWrapper(prefix: String): MessageProperties = Wrapper(this, prefix)

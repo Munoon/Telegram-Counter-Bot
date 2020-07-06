@@ -4,6 +4,9 @@
         :tada: Поздравляю! До встречи осталось {0} дня(дней).
         {1}
     </entry>
+    <entry key="buttonDescription">{0} {1}</entry>
+    <entry key="doneRateButton">{0} Готово</entry>
+    <entry key="typeMessageText">Введите сообщение...</entry>
     <entry key="additionalMessage">Сообщение:</entry>
 
     <entry key="counter-message-04.07.2020">Сообщение 1</entry>

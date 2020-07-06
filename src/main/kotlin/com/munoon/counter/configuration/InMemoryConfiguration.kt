@@ -10,6 +10,6 @@ class InMemoryConfiguration {
 
     class UserConfiguration {
         lateinit var telegramChatId: String
-        lateinit var telegramUserId: String
+        lateinit var name: String
     }
 }

@@ -11,7 +11,7 @@ class InMemoryUserRepository : UserRepository {
 
     constructor(inMemoryConfiguration: InMemoryConfiguration) {
         storage = inMemoryConfiguration.users.mapIndexed { index, item ->
-            User(index.toString(), TelegramSettings(item.telegramChatId, item.telegramUserId))
+            User(index.toString(), item.telegramChatId)
         }.toMutableList()
         index = storage.size
     }
@@ -19,12 +19,8 @@ class InMemoryUserRepository : UserRepository {
     override fun getById(id: String): User
             = storage.findLast { it.id == id } ?: throw NotFoundException("User with id $id is not found")
 
-    override fun getByTelegramUserId(id: String): User
-            = storage.findLast { it.telegramSettings.userId == id }
-                ?: throw NotFoundException("User with telegram user id $id is not found")
-
     override fun getByTelegramChatId(chatId: String): User
-            = storage.findLast { it.telegramSettings.chatId == chatId }
+            = storage.findLast { it.chatId == chatId }
                 ?: throw NotFoundException("User with telegram chat id $chatId is not found")
 
     override fun updateUser(user: User): User {
