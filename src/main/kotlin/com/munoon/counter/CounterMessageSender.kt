@@ -12,21 +12,15 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Message
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 import java.nio.charset.StandardCharsets.ISO_8859_1
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.LocalDate
-import java.util.*
 
 // TODO add logging
-// TODO add 'marking' property in rate model
 // TODO add list of own marks
 // TODO add list of all marks at the end of counting
 
@@ -54,35 +48,23 @@ class CounterMessageSender(
             message.replyMarkup = getReplyMarkup()
 
             val sentMessage = telegramBot.execute(message)
-            rateRepository.save(Rate(null, it.id.toString(), sentMessage.messageId.toString(), null, null))
+            rateRepository.save(Rate(null, it.id.toString(), sentMessage.messageId.toString(), null, null, true))
         }
     }
 
     fun onMessageReceive(message: Message) {
-        val messageEmojis = EmojiParser.extractEmojis(message.text)
         val user = userRepository.getByTelegramChatId(message.chatId.toString())
-         val rate = rateRepository.getRateByDate(user.id!!, LocalDate.now())
+        val rate = rateRepository.getRateByDate(user.id!!, LocalDate.now())
                 .orElse(null) ?: return
 
         telegramBot.execute(DeleteMessage(message.chatId, message.messageId))
         telegramBot.execute(DeleteMessage(message.chatId, rate.messageId.toInt()))
 
-        fun updateText() {
-            rate.comment = message.text
+        if (rate.marking) addMark(message, rate) else addComment(message, rate)
+    }
 
-            val sendMessage = SendMessage()
-            sendMessage.setChatId(message.chatId)
-            sendMessage.text = getText(rate.marks!!, rate.comment!!)
-            val sentMessage = telegramBot.execute(sendMessage)
-
-            rate.messageId = sentMessage.messageId.toString()
-            rateRepository.save(rate)
-        }
-
-        if (messageEmojis.size == 0) {
-            updateText()
-            return
-        }
+    private fun addMark(message: Message, rate: Rate) {
+        val messageEmojis = EmojiParser.extractEmojis(message.text)
 
         var emoji = EmojiParser.parseToAliases(messageEmojis[0])
         var addEmoji = true
@@ -96,22 +78,13 @@ class CounterMessageSender(
             shouldWorkWithMark = false
         }
 
-        if (!ratesMarkConfiguration.marks.any { it.emoji == emoji } && emoji != checkedEmoji && emoji != doneEmoji) {
-            updateText()
+        if (!ratesMarkConfiguration.marks.any { it.emoji == emoji } && emoji != doneEmoji) {
             return
         }
 
         if (shouldWorkWithMark) {
             if (addEmoji) rate.marks!!.add(emoji) else rate.marks!!.remove(emoji)
-
-            val sendMessage = SendMessage()
-            sendMessage.setChatId(message.chatId)
-            sendMessage.text = getText(rate.marks!!)
-            sendMessage.replyMarkup = getReplyMarkup(rate.marks!!)
-            val sentMessage = telegramBot.execute(sendMessage)
-
-            rate.messageId = sentMessage.messageId.toString()
-            rateRepository.save(rate)
+            updateCounterMessage(rate, message.chatId, true)
         } else {
             val sendMessage = SendMessage()
             sendMessage.setChatId(message.chatId)
@@ -119,9 +92,28 @@ class CounterMessageSender(
             sendMessage.replyMarkup = ReplyKeyboardRemove()
             val sentMessage = telegramBot.execute(sendMessage)
 
+            rate.marking = false
             rate.messageId = sentMessage.messageId.toString()
             rateRepository.save(rate)
         }
+    }
+
+    private fun addComment(message: Message, rate: Rate) {
+        rate.comment = message.text
+        updateCounterMessage(rate, message.chatId, false)
+    }
+
+    private fun updateCounterMessage(rate: Rate, chatId: Long, showMarkup: Boolean) {
+        val sendMessage = SendMessage()
+        sendMessage.setChatId(chatId)
+        sendMessage.text = getText(rate.marks!!, rate.comment ?: "")
+        if (showMarkup) {
+            sendMessage.replyMarkup = getReplyMarkup(rate.marks!!)
+        }
+        val sentMessage = telegramBot.execute(sendMessage)
+
+        rate.messageId = sentMessage.messageId.toString()
+        rateRepository.save(rate)
     }
 
     private fun getReplyMarkup(selected: List<String> = emptyList()) = ReplyKeyboardMarkup(

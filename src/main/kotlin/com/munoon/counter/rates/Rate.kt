@@ -21,5 +21,7 @@ data class Rate(
 
         var comment: String?,
 
+        var marking: Boolean,
+
         var date: LocalDate = LocalDate.now()
 )
