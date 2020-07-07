@@ -4,8 +4,10 @@ import com.munoon.counter.configuration.RatesMarkConfiguration
 import com.munoon.counter.dateLoaders.DateLoader
 import com.munoon.counter.rates.Rate
 import com.munoon.counter.rates.RateRepository
+import com.munoon.counter.rates.RatesService
 import com.munoon.counter.user.UserRepository
 import com.munoon.counter.utils.MessageProperties
+import com.munoon.counter.utils.RateUtil
 import com.vdurmont.emoji.EmojiParser
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -65,6 +67,10 @@ class CounterMessageSender(
 
     private fun addMark(message: Message, rate: Rate) {
         val messageEmojis = EmojiParser.extractEmojis(message.text)
+        if (messageEmojis.size == 0) {
+            updateCounterMessage(rate, message.chatId, true)
+            return
+        }
 
         var emoji = EmojiParser.parseToAliases(messageEmojis[0])
         var addEmoji = true
@@ -79,6 +85,7 @@ class CounterMessageSender(
         }
 
         if (!ratesMarkConfiguration.marks.any { it.emoji == emoji } && emoji != doneEmoji) {
+            updateCounterMessage(rate, message.chatId, true)
             return
         }
 
@@ -146,12 +153,9 @@ class CounterMessageSender(
             text += "\n$additionalText"
         }
 
-        if (marks.isNotEmpty()) {
-            text += "\n\n${EmojiParser.parseToUnicode(marks.joinToString(""))}"
-        }
-
-        if (additionalMessage.isNotEmpty()) {
-            text += if (marks.isNotEmpty()) " — $additionalMessage" else "\n\n$additionalMessage"
+        val comments = RateUtil.getMarksAndComment(marks, additionalMessage).let(EmojiParser::parseToUnicode)
+        if (comments.isNotBlank()) {
+            text += "\n\n$comments"
         }
 
         return text

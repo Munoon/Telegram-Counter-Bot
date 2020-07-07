@@ -11,7 +11,7 @@ class InMemoryUserRepository : UserRepository {
 
     constructor(inMemoryConfiguration: InMemoryConfiguration) {
         storage = inMemoryConfiguration.users.mapIndexed { index, item ->
-            User(index.toString(), item.telegramChatId)
+            User(index.toString(), item.telegramChatId, item.name)
         }.toMutableList()
         index = storage.size
     }

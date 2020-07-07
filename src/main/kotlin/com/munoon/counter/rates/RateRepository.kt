@@ -8,4 +8,6 @@ import java.util.*
 interface RateRepository: JpaRepository<Rate, Int> {
     @Query("FROM Rate WHERE userId = ?1 AND date = ?2")
     fun getRateByDate(userId: String, date: LocalDate): Optional<Rate>
+
+    fun getAllByUserId(userId: String): List<Rate>
 }
