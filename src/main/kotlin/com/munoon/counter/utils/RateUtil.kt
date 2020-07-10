@@ -2,6 +2,7 @@ package com.munoon.counter.utils
 
 import com.munoon.counter.rates.Rate
 import com.vdurmont.emoji.EmojiParser
+import java.nio.charset.StandardCharsets
 import java.time.format.DateTimeFormatter
 import java.util.stream.Collectors.toList
 
@@ -28,4 +29,6 @@ object RateUtil {
             else if (!marks.isNullOrEmpty()) marks.joinToString("")
             else if (!additionalMessage.isNullOrBlank()) additionalMessage
             else ""
+
+    fun parsePropertyCharset(str: String) = String(str.toByteArray(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8)
 }

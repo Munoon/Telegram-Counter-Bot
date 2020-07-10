@@ -19,7 +19,8 @@ class TelegramBot(
             @Lazy private val counterMessageSender: CounterMessageSender,
             private val ratesService: RatesService,
             private val userRepository: UserRepository,
-            private val messageProperties: MessageProperties
+            private val messageProperties: MessageProperties,
+            private val usersCommentsList: UsersCommentsList
         ) : TelegramLongPollingBot() {
     private val log = LoggerFactory.getLogger(TelegramBot::class.java)
 
@@ -34,6 +35,8 @@ class TelegramBot(
             } else {
                 counterMessageSender.onMessageReceive(update.message)
             }
+        } else if (update?.callbackQuery != null) {
+            usersCommentsList.onCallbackQuery(update.callbackQuery)
         }
     }
 

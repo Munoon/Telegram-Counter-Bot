@@ -3,7 +3,6 @@ package com.munoon.counter
 import com.munoon.counter.configuration.RatesMarkConfiguration
 import com.munoon.counter.dateLoaders.DateLoader
 import com.munoon.counter.rates.Rate
-import com.munoon.counter.rates.RateRepository
 import com.munoon.counter.rates.RatesService
 import com.munoon.counter.user.UserRepository
 import com.munoon.counter.utils.MessageProperties
@@ -18,46 +17,42 @@ import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
-import java.nio.charset.StandardCharsets.ISO_8859_1
-import java.nio.charset.StandardCharsets.UTF_8
 import java.time.LocalDate
 
 // TODO add logging
-// TODO add list of own marks
-// TODO add list of all marks at the end of counting
 
 @Service
 class CounterMessageSender(
         private val userRepository: UserRepository,
-        private val rateRepository: RateRepository,
+        private val ratesService: RatesService,
         private val telegramBot: TelegramBot,
         private val messageProperties: MessageProperties,
         private val dateLoader: DateLoader,
-        private val ratesMarkConfiguration: RatesMarkConfiguration
+        private val ratesMarkConfiguration: RatesMarkConfiguration,
+        private val usersCommentsList: UsersCommentsList
 ) {
-    private var log = LoggerFactory.getLogger(CounterMessageSender::class.java)
+    private val log = LoggerFactory.getLogger(CounterMessageSender::class.java)
     private val checkedEmoji = ":heavy_check_mark:"
     private val doneEmoji = ":white_check_mark:"
 
     @Scheduled(cron = "\${cronExpression}")
     fun sendScheduledMessage() {
         log.info("Sending schedule message to ${userRepository.count()} user(s)")
+        val showOtherUsersComment = dateLoader.getRemainsDays(LocalDate.now()) <= 0;
         userRepository.findAll().forEach {
             val message = SendMessage()
             message.chatId = it.chatId
 
             message.text = getText()
-            message.replyMarkup = getReplyMarkup()
+            message.replyMarkup = if (showOtherUsersComment) usersCommentsList.getMarkup() else getReplyMarkup()
 
             val sentMessage = telegramBot.execute(message)
-            rateRepository.save(Rate(null, it.id.toString(), sentMessage.messageId.toString(), null, null, true))
+            ratesService.save(Rate(null, it.id.toString(), sentMessage.messageId.toString(), null, null, true))
         }
     }
 
     fun onMessageReceive(message: Message) {
-        val user = userRepository.getByTelegramChatId(message.chatId.toString())
-        val rate = rateRepository.getRateByDate(user.id!!, LocalDate.now())
-                .orElse(null) ?: return
+        val rate = ratesService.getRateByTelegramId(message.from.id.toString(), LocalDate.now())
 
         telegramBot.execute(DeleteMessage(message.chatId, message.messageId))
         telegramBot.execute(DeleteMessage(message.chatId, rate.messageId.toInt()))
@@ -101,7 +96,7 @@ class CounterMessageSender(
 
             rate.marking = false
             rate.messageId = sentMessage.messageId.toString()
-            rateRepository.save(rate)
+            ratesService.save(rate)
         }
     }
 
@@ -114,19 +109,17 @@ class CounterMessageSender(
         val sendMessage = SendMessage()
         sendMessage.setChatId(chatId)
         sendMessage.text = getText(rate.marks!!, rate.comment ?: "")
-        if (showMarkup) {
-            sendMessage.replyMarkup = getReplyMarkup(rate.marks!!)
-        }
+        sendMessage.replyMarkup = if (showMarkup) getReplyMarkup(rate.marks!!) else usersCommentsList.getMarkup()
         val sentMessage = telegramBot.execute(sendMessage)
 
         rate.messageId = sentMessage.messageId.toString()
-        rateRepository.save(rate)
+        ratesService.save(rate)
     }
 
     private fun getReplyMarkup(selected: List<String> = emptyList()) = ReplyKeyboardMarkup(
         ratesMarkConfiguration.marks.map {
             val row = KeyboardRow()
-            val description = String(it.description.toByteArray(ISO_8859_1), UTF_8)
+            val description = RateUtil.parsePropertyCharset(it.description)
 
             var text = messageProperties.getProperty("buttonDescription", it.emoji, description)
             if (selected.contains(it.emoji)) {
@@ -142,9 +135,10 @@ class CounterMessageSender(
         }
     )
 
-    private fun getText(marks: List<String> = emptyList(), additionalMessage: String = ""): String {
+    fun getText(marks: List<String> = emptyList(), additionalMessage: String = ""): String {
+        val counterEnd = dateLoader.getRemainsDays(LocalDate.now()) <= 0;
         var text = messageProperties.getProperty(
-                "counter",
+                if (counterEnd) "counterEnd" else "counter",
                 dateLoader.getRemainsDays(), dateLoader.getLoadingString()
         )!!
 
