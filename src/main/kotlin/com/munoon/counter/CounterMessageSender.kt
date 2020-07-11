@@ -19,8 +19,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 import java.time.LocalDate
 
-// TODO add logging
-
 @Service
 class CounterMessageSender(
         private val userRepository: UserRepository,
@@ -85,9 +83,17 @@ class CounterMessageSender(
         }
 
         if (shouldWorkWithMark) {
-            if (addEmoji) rate.marks!!.add(emoji) else rate.marks!!.remove(emoji)
+            if (addEmoji) {
+                log.info("Added '$emoji' mark by user with telegram chat id ${message.from.id}")
+                rate.marks!!.add(emoji)
+            } else {
+                log.info("Removed '$emoji' mark by user with telegram chat id ${message.from.id}")
+                rate.marks!!.remove(emoji)
+            }
             updateCounterMessage(rate, message.chatId, true)
         } else {
+            log.info("Saved marks list and ask for comment user with telegram chat id ${message.from.id}")
+
             val sendMessage = SendMessage()
             sendMessage.setChatId(message.chatId)
             sendMessage.text = getText(rate.marks!!, messageProperties.getProperty("typeMessageText")!!)
@@ -101,6 +107,7 @@ class CounterMessageSender(
     }
 
     private fun addComment(message: Message, rate: Rate) {
+        log.info("User with telegram chat id ${message.chatId} add comment: '${message.text}'")
         rate.comment = message.text
         updateCounterMessage(rate, message.chatId, false)
     }

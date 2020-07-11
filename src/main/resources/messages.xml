@@ -15,6 +15,7 @@
     <entry key="getOtherCommentsButton">Посмотреть комментарии</entry>
     <entry key="backButton">Назад</entry>
     <entry key="additionalMessage">Сообщение:</entry>
+    <entry key="noRateAvailable">Нет доступных оценок</entry>
 
     <entry key="counter-message-04.07.2020">Сообщение 1</entry>
     <entry key="counter-message-22">Сообщение 2</entry>

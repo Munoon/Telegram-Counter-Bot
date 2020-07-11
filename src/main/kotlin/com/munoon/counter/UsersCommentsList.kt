@@ -5,6 +5,7 @@ import com.munoon.counter.user.User
 import com.munoon.counter.user.UserRepository
 import com.munoon.counter.utils.MessageProperties
 import com.munoon.counter.utils.RateUtil
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery
@@ -24,6 +25,7 @@ class UsersCommentsList(
         private val userRepository: UserRepository,
         @Lazy private val telegramBot: TelegramBot
 ) {
+    private val log = LoggerFactory.getLogger(UsersCommentsList::class.java)
     private val secretID = UUID.randomUUID().toString();
     private val callbackDataPrefix = "users_comments"
     private val showCommand = "show"
@@ -47,8 +49,10 @@ class UsersCommentsList(
 
         val command = callbackQuery.data.split(" ")[1];
         if (command == showCommand) {
+            log.info("Show other user's comment to user with telegram chat id ${callbackQuery.message.from.id}")
             showUsersComment(callbackQuery)
         } else {
+            log.info("Show counter ('Back' button) to user with telegram chat id ${callbackQuery.message.from.id}")
             onBackCommand(callbackQuery)
         }
 
@@ -69,7 +73,10 @@ class UsersCommentsList(
         editMessageText.setParseMode("Markdown")
 
         val user = userRepository.getByTelegramChatId(callbackQuery.message.chatId.toString())
-        editMessageText.text = getCommentsMessageText(user)
+        val editMessageTextText = getCommentsMessageText(user)
+        editMessageText.text =
+                if (editMessageTextText.isEmpty()) messageProperties.getProperty("noRateAvailable")
+                else editMessageTextText
 
         telegramBot.execute(editMessageText)
 
