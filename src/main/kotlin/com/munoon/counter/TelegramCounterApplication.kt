@@ -3,6 +3,7 @@ package com.munoon.counter
 import com.munoon.counter.configuration.DatesSettings
 import com.munoon.counter.dateLoaders.DateLoader
 import com.munoon.counter.dateLoaders.EmojiLoadingString
+import com.munoon.counter.dateLoaders.PercentLoadingString
 import com.munoon.counter.dateLoaders.SimpleCharLoadingString
 import com.munoon.counter.utils.MessageProperties
 import org.springframework.beans.factory.annotation.Value
@@ -25,6 +26,7 @@ class TelegramCounterApplication {
     ): DateLoader = when (selectedDateLoader) {
         1 -> SimpleCharLoadingString(datesSettings, messageProperties)
         2 -> EmojiLoadingString(datesSettings, messageProperties, environment)
+        3 -> PercentLoadingString(datesSettings, messageProperties)
         else -> SimpleCharLoadingString(datesSettings, messageProperties)
     }
 }
