@@ -116,7 +116,13 @@ class CounterMessageSender(
         val sendMessage = SendMessage()
         sendMessage.setChatId(chatId)
         sendMessage.text = getText(rate.marks!!, rate.comment ?: "")
-        sendMessage.replyMarkup = if (showMarkup) getReplyMarkup(rate.marks!!) else usersCommentsList.getMarkup()
+
+        when {
+            showMarkup -> getReplyMarkup(rate.marks!!)
+            dateLoader.getRemainsDays(LocalDate.now()) <= 0 -> usersCommentsList.getMarkup()
+            else -> null
+        }?.let { sendMessage.replyMarkup = it }
+
         val sentMessage = telegramBot.execute(sendMessage)
 
         rate.messageId = sentMessage.messageId.toString()

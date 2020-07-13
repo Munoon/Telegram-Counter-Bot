@@ -1,5 +1,6 @@
 package com.munoon.counter
 
+import com.munoon.counter.dateLoaders.DateLoader
 import com.munoon.counter.rates.RatesService
 import com.munoon.counter.user.User
 import com.munoon.counter.user.UserRepository
@@ -20,13 +21,13 @@ import java.util.*
 @Service
 class UsersCommentsList(
         private val messageProperties: MessageProperties,
-        @Lazy private val counterMessageSender: CounterMessageSender,
         private val ratesService: RatesService,
         private val userRepository: UserRepository,
+        private val dateLoader: DateLoader,
+        @Lazy private val counterMessageSender: CounterMessageSender,
         @Lazy private val telegramBot: TelegramBot
 ) {
     private val log = LoggerFactory.getLogger(UsersCommentsList::class.java)
-    private val secretID = UUID.randomUUID().toString();
     private val callbackDataPrefix = "users_comments"
     private val showCommand = "show"
     private val backCommand = "back"
@@ -34,7 +35,7 @@ class UsersCommentsList(
     fun getMarkup(): InlineKeyboardMarkup {
         val message = messageProperties.getProperty("getOtherCommentsButton")
         val button = InlineKeyboardButton(message)
-        button.callbackData = "$callbackDataPrefix $showCommand $secretID"
+        button.callbackData = "$callbackDataPrefix $showCommand"
         return InlineKeyboardMarkup(
                 Collections.singletonList(
                         Collections.singletonList(button)
@@ -62,8 +63,7 @@ class UsersCommentsList(
     }
 
     private fun showUsersComment(callbackQuery: CallbackQuery) {
-        val commands = callbackQuery.data.split(" ")
-        if (commands.size != 3 || commands[2] != secretID) {
+        if (dateLoader.getRemainsDays(LocalDate.now()) > 0) {
             return
         }
 
@@ -118,7 +118,7 @@ class UsersCommentsList(
         }
 
         val dataInfo = data.split(" ")
-        return dataInfo.size >= 2 && (dataInfo[1] == showCommand || dataInfo[1] == backCommand)
+        return dataInfo.size == 2 && (dataInfo[1] == showCommand || dataInfo[1] == backCommand)
     }
 
     private fun getCommentsMessageText(user: User): String {
