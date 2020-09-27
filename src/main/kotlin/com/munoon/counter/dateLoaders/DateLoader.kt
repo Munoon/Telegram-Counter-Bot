@@ -5,6 +5,7 @@ import com.munoon.counter.utils.MessageProperties
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @Component
 abstract class DateLoader(
@@ -28,11 +29,11 @@ abstract class DateLoader(
 
     fun calculatePercent(date: LocalDate): Double {
         val compareToday = getRemainsDays(date)
-        val compareTotal = datesSettings.end.compareTo(datesSettings.start).toDouble()
+        val compareTotal = ChronoUnit.DAYS.between(datesSettings.start, datesSettings.end).toDouble()
         return 100 - ((compareToday / compareTotal) * 100)
     }
 
-    fun getRemainsDays(fromDate: LocalDate = LocalDate.now()): Double = datesSettings.end.compareTo(fromDate).toDouble()
+    fun getRemainsDays(fromDate: LocalDate = LocalDate.now()) = ChronoUnit.DAYS.between(fromDate, datesSettings.end)
 
     abstract fun getLoadingString(percent: Double): String
 }
