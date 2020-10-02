@@ -11,8 +11,7 @@ CREATE TABLE rates
     message_id       VARCHAR(225)            NOT NULL,
     comment          VARCHAR(255),
     marking          BOOLEAN                 NOT NULL,
-    date             DATE DEFAULT now()      NOT NULL,
-    UNIQUE (user_id, date)
+    date             DATE DEFAULT now()      NOT NULL
 );
 
 CREATE TABLE rates_marks

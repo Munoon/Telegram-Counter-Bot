@@ -50,7 +50,7 @@ class CounterMessageSender(
     }
 
     fun onMessageReceive(message: Message) {
-        val rate = ratesService.getRateByTelegramId(message.from.id.toString(), LocalDate.now())
+        val rate = ratesService.getLastRate(message.from.id.toString())
 
         telegramBot.execute(DeleteMessage(message.chatId, message.messageId))
         telegramBot.execute(DeleteMessage(message.chatId, rate.messageId.toInt()))

@@ -102,7 +102,7 @@ class UsersCommentsList(
         editMessageText.setChatId(callbackQuery.message.chatId)
         editMessageText.replyMarkup = getMarkup()
 
-        val rate = ratesService.getRateByTelegramId(callbackQuery.from.id.toString(), LocalDate.now())
+        val rate = ratesService.getLastRate(callbackQuery.from.id.toString())
         editMessageText.text = counterMessageSender.getText(
                 rate.marks ?: Collections.emptyList(),
                 rate.comment ?: ""
