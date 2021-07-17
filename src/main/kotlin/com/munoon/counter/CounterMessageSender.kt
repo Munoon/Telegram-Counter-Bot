@@ -2,6 +2,7 @@ package com.munoon.counter
 
 import com.munoon.counter.configuration.RatesMarkConfiguration
 import com.munoon.counter.dateLoaders.DateLoader
+import com.munoon.counter.messages.MessageService
 import com.munoon.counter.rates.Rate
 import com.munoon.counter.rates.RatesService
 import com.munoon.counter.user.UserRepository
@@ -27,7 +28,8 @@ class CounterMessageSender(
         private val messageProperties: MessageProperties,
         private val dateLoader: DateLoader,
         private val ratesMarkConfiguration: RatesMarkConfiguration,
-        private val usersCommentsList: UsersCommentsList
+        private val usersCommentsList: UsersCommentsList,
+        private val messageService: MessageService
 ) {
     private val log = LoggerFactory.getLogger(CounterMessageSender::class.java)
     private val checkedEmoji = ":heavy_check_mark:"
@@ -38,7 +40,7 @@ class CounterMessageSender(
         log.info("Sending schedule message to ${userRepository.count()} user(s)")
         val showOtherUsersComment = dateLoader.getRemainsDays(LocalDate.now()) <= 0;
         userRepository.findAll().forEach {
-            val message = SendMessage()
+            val message = SendMessage().enableMarkdown(true)
             message.chatId = it.chatId
 
             message.text = getText()
@@ -94,7 +96,7 @@ class CounterMessageSender(
         } else {
             log.info("Saved marks list and ask for comment user with telegram chat id ${message.from.id}")
 
-            val sendMessage = SendMessage()
+            val sendMessage = SendMessage().enableMarkdown(true)
             sendMessage.setChatId(message.chatId)
             sendMessage.text = getText(rate.marks!!, messageProperties.getProperty("typeMessageText")!!)
             sendMessage.replyMarkup = ReplyKeyboardRemove()
@@ -113,7 +115,7 @@ class CounterMessageSender(
     }
 
     private fun updateCounterMessage(rate: Rate, chatId: Long, showMarkup: Boolean) {
-        val sendMessage = SendMessage()
+        val sendMessage = SendMessage().enableMarkdown(true)
         sendMessage.setChatId(chatId)
         sendMessage.text = getText(rate.marks!!, rate.comment ?: "")
 
@@ -155,7 +157,7 @@ class CounterMessageSender(
                 dateLoader.getRemainsDays(), dateLoader.getLoadingString()
         )!!
 
-        val additionalText = dateLoader.getAdditionalMessage()
+        val additionalText = messageService.getAdditionalMessage()
         if (additionalText != null) {
             text += "\n$additionalText"
         }

@@ -97,7 +97,7 @@ class UsersCommentsList(
     }
 
     private fun onBackCommand(callbackQuery: CallbackQuery) {
-        val editMessageText = EditMessageText()
+        val editMessageText = EditMessageText().enableMarkdown(true)
         editMessageText.messageId = callbackQuery.message.messageId
         editMessageText.setChatId(callbackQuery.message.chatId)
         editMessageText.replyMarkup = getMarkup()

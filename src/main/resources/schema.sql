@@ -1,5 +1,6 @@
 DROP TABLE rates_marks IF EXISTS;
 DROP TABLE rates IF EXISTS;
+DROP TABLE messages IF EXISTS;
 DROP SEQUENCE global_seq IF EXISTS;
 
 create sequence global_seq;
@@ -21,4 +22,12 @@ CREATE TABLE rates_marks
     mark             VARCHAR(225)               NOT NULL,
     FOREIGN KEY (rate_id) REFERENCES rates (id),
     UNIQUE (rate_id, mark)
-)
+);
+
+CREATE TABLE messages
+(
+    id               BIGINT DEFAULT global_seq.nextval PRIMARY KEY,
+    user_id          TEXT                       NOT NULL,
+    message          TEXT                       NOT NULL,
+    date             DATE DEFAULT now()         NOT NULL
+);

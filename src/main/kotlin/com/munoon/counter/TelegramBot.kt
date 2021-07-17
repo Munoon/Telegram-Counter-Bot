@@ -1,5 +1,6 @@
 package com.munoon.counter
 
+import com.munoon.counter.messages.MessageService
 import com.munoon.counter.rates.RatesService
 import com.munoon.counter.user.UserRepository
 import com.munoon.counter.utils.MessageProperties
@@ -14,26 +15,38 @@ import org.telegram.telegrambots.meta.api.objects.Update
 
 @Component
 class TelegramBot(
-            @Value("\${telegram.bot.token}") private val token: String,
-            @Value("\${telegram.bot.username}") private val username: String,
-            @Lazy private val counterMessageSender: CounterMessageSender,
-            private val ratesService: RatesService,
-            private val userRepository: UserRepository,
-            private val messageProperties: MessageProperties,
-            private val usersCommentsList: UsersCommentsList
-        ) : TelegramLongPollingBot() {
+    @Value("\${telegram.bot.token}") private val token: String,
+    @Value("\${telegram.bot.username}") private val username: String,
+    @Lazy private val counterMessageSender: CounterMessageSender,
+    private val ratesService: RatesService,
+    private val userRepository: UserRepository,
+    private val messageProperties: MessageProperties,
+    private val usersCommentsList: UsersCommentsList,
+    private val messageService: MessageService
+) : TelegramLongPollingBot() {
     private val log = LoggerFactory.getLogger(TelegramBot::class.java)
 
     override fun onUpdateReceived(update: Update?) {
         if (update?.message != null) {
-            if (update.message.text == "/marks") {
-                val user = userRepository.getByTelegramChatId(update.message.chatId.toString())
-                var text = ratesService.getOwnRates(user.id!!).let(RateUtil::printOwnRatesList)
-                if (text.isBlank()) text = messageProperties.getProperty("noMarksMessage")!!
-                execute(SendMessage(update.message.chatId, text))
-                log.info("Send own marks to user ${user.id}")
-            } else {
-                counterMessageSender.onMessageReceive(update.message)
+            when (update.message.text) {
+                "/marks" -> {
+                    val user = userRepository.getByTelegramChatId(update.message.chatId.toString())
+                    var text = ratesService.getOwnRates(user.id!!).let(RateUtil::printOwnRatesList)
+                    if (text.isBlank()) text = messageProperties.getProperty("noMarksMessage")!!
+                    execute(SendMessage(update.message.chatId, text))
+                    log.info("Send own marks to user ${user.id}")
+                }
+                "/message" -> {
+                    messageService.onCreateMessageCommand(update.message.chatId.toString())
+                    val text = messageProperties.getProperty("createScheduledMessage")!!
+                    execute(SendMessage(update.message.chatId, text).enableMarkdown(true))
+                }
+                else -> {
+                    val parsed = messageService.checkMessagePlaningAndParse(update, this)
+                    if (!parsed) {
+                        counterMessageSender.onMessageReceive(update.message)
+                    }
+                }
             }
         } else if (update?.callbackQuery != null) {
             usersCommentsList.onCallbackQuery(update.callbackQuery)

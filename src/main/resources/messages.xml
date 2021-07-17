@@ -17,7 +17,11 @@
     <entry key="additionalMessage">Сообщение:</entry>
     <entry key="noRateAvailable">Нет доступных оценок</entry>
     <entry key="percentLoadingString">Времени прошло: {0}%</entry>
-
-    <entry key="counter-message-04.07.2020">Сообщение 1</entry>
-    <entry key="counter-message-22">Сообщение 2</entry>
+    <entry key="createScheduledMessage">
+        Вы начали планирование сообщения.
+        Введите дату, на когда вы хотите запланировать сообщение в формате: *27.12.2019*.
+        (Ваше сообщение будет видно всем участникам)
+    </entry>
+    <entry key="createScheduledMessageStep2">Отлично! Теперь введите сообщение, которое вы хотите запланировать.</entry>
+    <entry key="createScheduledMessageDone">Вы успешно запланировали сообщение! Можете удалить сообщения планирования.</entry>
 </properties>
