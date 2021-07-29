@@ -10,7 +10,7 @@ CREATE TABLE rates
     id               BIGINT DEFAULT global_seq.nextval PRIMARY KEY,
     user_id          VARCHAR(255)            NOT NULL,
     message_id       VARCHAR(225)            NOT NULL,
-    comment          VARCHAR(255),
+    comment          TEXT,
     marking          BOOLEAN                 NOT NULL,
     date             DATE DEFAULT now()      NOT NULL
 );

@@ -5,6 +5,7 @@ import com.munoon.counter.rates.RatesService
 import com.munoon.counter.user.UserRepository
 import com.munoon.counter.utils.MessageProperties
 import com.munoon.counter.utils.RateUtil
+import com.munoon.counter.utils.TelegramUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Lazy
@@ -33,7 +34,10 @@ class TelegramBot(
                     val user = userRepository.getByTelegramChatId(update.message.chatId.toString())
                     var text = ratesService.getOwnRates(user.id!!).let(RateUtil::printOwnRatesList)
                     if (text.isBlank()) text = messageProperties.getProperty("noMarksMessage")!!
-                    execute(SendMessage(update.message.chatId, text))
+
+                    val textParts = TelegramUtils.splitMessageText(text)
+                    textParts.forEach { execute(SendMessage(user.chatId, it)) }
+
                     log.info("Send own marks to user ${user.id}")
                 }
                 "/message" -> {

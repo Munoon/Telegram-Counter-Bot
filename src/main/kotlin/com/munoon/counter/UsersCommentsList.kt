@@ -6,10 +6,12 @@ import com.munoon.counter.user.User
 import com.munoon.counter.user.UserRepository
 import com.munoon.counter.utils.MessageProperties
 import com.munoon.counter.utils.RateUtil
+import com.munoon.counter.utils.TelegramUtils
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery
@@ -74,11 +76,22 @@ class UsersCommentsList(
 
         val user = userRepository.getByTelegramChatId(callbackQuery.message.chatId.toString())
         val editMessageTextText = getCommentsMessageText(user)
-        editMessageText.text =
-                if (editMessageTextText.isEmpty()) messageProperties.getProperty("noRateAvailable")
-                else editMessageTextText
+
+        val messageParts =
+            if (editMessageTextText.isEmpty()) listOf(messageProperties.getProperty("noRateAvailable"))
+            else TelegramUtils.splitMessageText(editMessageTextText)
+
+        editMessageText.text = messageParts[0]
 
         telegramBot.execute(editMessageText)
+
+        if (messageParts.size > 1) {
+            messageParts.subList(1, messageParts.size)
+                .forEach {
+                    val message = SendMessage(callbackQuery.message.chatId, it).enableMarkdownV2(true)
+                    telegramBot.execute(message)
+                }
+        }
 
         val editMessageReplyMarkup = EditMessageReplyMarkup()
         editMessageReplyMarkup.messageId = callbackQuery.message.messageId
