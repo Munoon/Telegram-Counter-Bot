@@ -43,6 +43,7 @@ class TelegramBot(
                 "/message" -> {
                     messageService.onCreateMessageCommand(update.message.chatId.toString())
                     val text = messageProperties.getProperty("createScheduledMessage")!!
+                        .let { TelegramUtils.escapeSpecialCharacters(it) }
                     execute(SendMessage(update.message.chatId, text).enableMarkdown(true))
                 }
                 else -> {

@@ -78,8 +78,9 @@ class UsersCommentsList(
         val editMessageTextText = getCommentsMessageText(user)
 
         val messageParts =
-            if (editMessageTextText.isEmpty()) listOf(messageProperties.getProperty("noRateAvailable"))
-            else TelegramUtils.splitMessageText(editMessageTextText)
+            if (editMessageTextText.isEmpty()) listOf(
+                TelegramUtils.escapeSpecialCharacters(messageProperties.getProperty("noRateAvailable")!!))
+            else TelegramUtils.splitMessageText(TelegramUtils.escapeSpecialCharacters(editMessageTextText))
 
         editMessageText.text = messageParts[0]
 

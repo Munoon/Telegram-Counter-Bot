@@ -8,6 +8,7 @@ import com.munoon.counter.rates.RatesService
 import com.munoon.counter.user.UserRepository
 import com.munoon.counter.utils.MessageProperties
 import com.munoon.counter.utils.RateUtil
+import com.munoon.counter.utils.TelegramUtils
 import com.vdurmont.emoji.EmojiParser
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -43,7 +44,7 @@ class CounterMessageSender(
             val message = SendMessage().enableMarkdown(true)
             message.chatId = it.chatId
 
-            message.text = getText()
+            message.text = TelegramUtils.escapeSpecialCharacters(getText())
             message.replyMarkup = if (showOtherUsersComment) usersCommentsList.getMarkup() else getReplyMarkup()
 
             val sentMessage = telegramBot.execute(message)
@@ -99,6 +100,7 @@ class CounterMessageSender(
             val sendMessage = SendMessage().enableMarkdown(true)
             sendMessage.setChatId(message.chatId)
             sendMessage.text = getText(rate.marks!!, messageProperties.getProperty("typeMessageText")!!)
+                .let { TelegramUtils.escapeSpecialCharacters(it) }
             sendMessage.replyMarkup = ReplyKeyboardRemove()
             val sentMessage = telegramBot.execute(sendMessage)
 
@@ -118,6 +120,7 @@ class CounterMessageSender(
         val sendMessage = SendMessage().enableMarkdown(true)
         sendMessage.setChatId(chatId)
         sendMessage.text = getText(rate.marks!!, rate.comment ?: "")
+            .let { TelegramUtils.escapeSpecialCharacters(it) }
 
         when {
             showMarkup -> getReplyMarkup(rate.marks!!)

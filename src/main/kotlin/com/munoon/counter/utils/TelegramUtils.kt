@@ -2,6 +2,10 @@ package com.munoon.counter.utils
 
 object TelegramUtils {
     private const val TEXT_LIMIT = 4096
+    private val specialCharacters =
+        setOf("_", "*", "[", "]", "(", ")", "~", "`", ">", "#", "+", "-", "=", "|", "{", "}", ".", "!")
+
+    fun escapeSpecialCharacters(text: String) = specialCharacters.fold(text) { acc, v -> acc.replace(v, "\\$v") }
 
     fun splitMessageText(text: String): List<String> {
         if (text.length < TEXT_LIMIT) {
