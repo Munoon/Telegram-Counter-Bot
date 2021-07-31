@@ -41,7 +41,7 @@ class CounterMessageSender(
         log.info("Sending schedule message to ${userRepository.count()} user(s)")
         val showOtherUsersComment = dateLoader.getRemainsDays(LocalDate.now()) <= 0;
         userRepository.findAll().forEach {
-            val message = SendMessage().enableMarkdown(true)
+            val message = SendMessage().enableMarkdownV2(true)
             message.chatId = it.chatId
 
             message.text = TelegramUtils.escapeSpecialCharacters(getText())
@@ -97,7 +97,7 @@ class CounterMessageSender(
         } else {
             log.info("Saved marks list and ask for comment user with telegram chat id ${message.from.id}")
 
-            val sendMessage = SendMessage().enableMarkdown(true)
+            val sendMessage = SendMessage().enableMarkdownV2(true)
             sendMessage.setChatId(message.chatId)
             sendMessage.text = getText(rate.marks!!, messageProperties.getProperty("typeMessageText")!!)
                 .let { TelegramUtils.escapeSpecialCharacters(it) }
@@ -117,7 +117,7 @@ class CounterMessageSender(
     }
 
     private fun updateCounterMessage(rate: Rate, chatId: Long, showMarkup: Boolean) {
-        val sendMessage = SendMessage().enableMarkdown(true)
+        val sendMessage = SendMessage().enableMarkdownV2(true)
         sendMessage.setChatId(chatId)
         sendMessage.text = getText(rate.marks!!, rate.comment ?: "")
             .let { TelegramUtils.escapeSpecialCharacters(it) }

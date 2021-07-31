@@ -44,7 +44,7 @@ class TelegramBot(
                     messageService.onCreateMessageCommand(update.message.chatId.toString())
                     val text = messageProperties.getProperty("createScheduledMessage")!!
                         .let { TelegramUtils.escapeSpecialCharacters(it) }
-                    execute(SendMessage(update.message.chatId, text).enableMarkdown(true))
+                    execute(SendMessage(update.message.chatId, text).enableMarkdownV2(true))
                 }
                 else -> {
                     val parsed = messageService.checkMessagePlaningAndParse(update, this)
